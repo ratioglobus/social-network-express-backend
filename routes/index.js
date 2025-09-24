@@ -10,7 +10,7 @@ const uploadsDestination = 'uploads';
 const storage = multer.diskStorage({
     destination: uploadsDestination,
     filename: function(req, file, cb) {
-        cb(null, file.originalName)
+        cb(null, file.originalname)
     }
 })
 
@@ -21,7 +21,7 @@ router.post('/register', UserController.register)
 router.post('/login', UserController.login)
 router.get('/current', authenticateToken, UserController.current)
 router.get('/users/:id', authenticateToken, UserController.getUserById)
-router.put('/users/:id', authenticateToken, UserController.updateUser)
+router.put('/users/:id', authenticateToken, uploads.single('avatar'), UserController.updateUser)
 
 // Роуты постов
 router.post('/posts', authenticateToken, PostController.createPost)
