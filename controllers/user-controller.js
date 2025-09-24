@@ -63,7 +63,7 @@ const UserController = {
                 return res.status(400).json({error: "Неверный логин или пароль"})
             }
 
-            const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY, { expiresIn: '1h' });
+            const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, { expiresIn: '1h' });
 
             res.json({ token })
 
@@ -92,7 +92,7 @@ const UserController = {
             const isFollowing = await prisma.follows.findFirst({
                 where: {
                     AND: [
-                        { followerId: userId },
+                        { followerID: userId },
                         { followingID: id }
                     ]
                 }

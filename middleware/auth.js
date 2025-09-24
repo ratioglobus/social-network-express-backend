@@ -10,7 +10,7 @@ const authenticateToken = (req, res, next) => {
     if (err) return res.status(403).json({ error: 'Invalid token' });
 
     // payload.id — это id пользователя, который мы положили при логине
-    req.user = { userId: payload.id };
+    req.user = { userId: payload.userId  };
     next();
   });
 };
