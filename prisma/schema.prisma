@@ -43,6 +43,7 @@ model Follows {
 model Post {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   content   String
+  imageUrl  String?   // 👈 новое поле для картинки (опциональное)
   author    User      @relation(fields: [authorId], references: [id])
   authorId  String    @db.ObjectId
   likes     Like[]

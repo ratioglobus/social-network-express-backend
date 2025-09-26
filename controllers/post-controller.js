@@ -6,28 +6,30 @@ const PostController = {
         const authorId = req.user?.userId;
 
         if (!authorId) {
-        return res.status(401).json({ error: 'Пользователь не авторизован' });
+            return res.status(401).json({ error: 'Пользователь не авторизован' });
         }
 
         if (!content || content.trim() === '') {
-        return res.status(400).json({ error: 'Поле content обязательно' });
+            return res.status(400).json({ error: 'Поле content обязательно' });
         }
 
         try {
-        const post = await prisma.post.create({
-            data: {
-            content,
-            // связываем пост с существующим пользователем через connect
-            author: {
-                connect: { id: authorId },
-            },
-            },
-        });
+            const post = await prisma.post.create({
+                data: {
+                    content,
+                    imageUrl: req.file ? `/uploads/${req.file.filename}` : null,
+                    author: {
+                        connect: { id: authorId },
+                    },
+                },
+            });
+            console.log(req.file);
 
-        res.status(201).json(post);
+
+            res.status(201).json(post);
         } catch (error) {
-        console.error('Create post error', error);
-        res.status(500).json({ error: 'Internal server error' });
+            console.error('Create post error', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     },
     getAllPosts: async (req, res) => {
@@ -39,23 +41,36 @@ const PostController = {
                     likes: true,
                     author: true,
                     comments: true
-                }, 
+                },
                 orderBy: {
                     createdAt: 'desc'
                 }
-            })
+            });
 
+            // Явно формируем объект для фронта
             const postWithLikeInfo = posts.map(post => ({
-                ...post,
-                likedByUser: post.likes.some(like => like.userId === userId)
-            }))
-            
+                id: post.id,
+                content: post.content,
+                authorId: post.authorId,
+                author: {
+                    id: post.author.id,
+                    name: post.author.name,
+                    avatarUrl: post.author.avatarUrl
+                },
+                likes: post.likes,
+                comments: post.comments,
+                imageUrl: post.imageUrl || null, // <- явное поле
+                likedByUser: post.likes.some(like => like.userId === userId),
+                createdAt: post.createdAt
+            }));
+
             res.json(postWithLikeInfo);
         } catch (error) {
             console.error('get all post error', error);
-            res.status(500).json({error: 'Internal server error'})
+            res.status(500).json({ error: 'Internal server error' });
         }
     },
+
     getPostById: async (req, res) => {
         const { id } = req.params;
         const userId = req.user.userId;
@@ -75,7 +90,7 @@ const PostController = {
             })
 
             if (!post) {
-                return res.status(404).json({error: 'Пост не найден'})
+                return res.status(404).json({ error: 'Пост не найден' })
             }
 
             const postWithLikeInfo = {
@@ -86,7 +101,7 @@ const PostController = {
             res.json(postWithLikeInfo)
         } catch (error) {
             console.error('get post by id error', error);
-            res.status(500).json({error: 'Internal server error'})
+            res.status(500).json({ error: 'Internal server error' })
         }
     },
     deletePost: async (req, res) => {
@@ -95,7 +110,7 @@ const PostController = {
         const post = await prisma.post.findUnique({ where: { id } });
 
         if (!post) {
-            return res.status(404).json({ error: 'Пост не найден'})
+            return res.status(404).json({ error: 'Пост не найден' })
         }
 
         if (post.authorId.toString() !== req.user.userId.toString()) {
@@ -104,15 +119,15 @@ const PostController = {
 
         try {
             const transaction = await prisma.$transaction([
-                prisma.comment.deleteMany({where: { postId: id }}),
-                prisma.like.deleteMany({where: { postId: id }}),
-                prisma.post.delete({where: { id }})
+                prisma.comment.deleteMany({ where: { postId: id } }),
+                prisma.like.deleteMany({ where: { postId: id } }),
+                prisma.post.delete({ where: { id } })
             ])
 
             res.json(transaction);
         } catch (error) {
             console.error('Delete post error', error);
-            res.status(500).json({error: 'Internal server error'})
+            res.status(500).json({ error: 'Internal server error' })
         }
     }
 }
