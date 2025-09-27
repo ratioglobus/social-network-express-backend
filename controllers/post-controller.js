@@ -138,7 +138,44 @@ const PostController = {
             res.status(500).json({ error: 'Internal server error' });
         }
     },
+    getPostsByUser: async (req, res) => {
+        const { id } = req.params;
+        const currentUserId = req.user?.userId;
 
+        try {
+            const posts = await prisma.post.findMany({
+                where: { authorId: id },
+                include: {
+                    likes: true,
+                    comments: true,
+                    author: true
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            // Формируем объект для фронта с likedByUser
+            const postWithLikeInfo = posts.map(post => ({
+                id: post.id,
+                content: post.content,
+                authorId: post.authorId,
+                author: {
+                    id: post.author.id,
+                    name: post.author.name,
+                    avatarUrl: post.author.avatarUrl
+                },
+                likes: post.likes,
+                comments: post.comments,
+                imageUrl: post.imageUrl || null,
+                likedByUser: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false,
+                createdAt: post.createdAt
+            }));
+
+            res.json(postWithLikeInfo);
+        } catch (error) {
+            console.error('get posts by user error', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
     deletePost: async (req, res) => {
         const { id } = req.params;
 
