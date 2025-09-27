@@ -104,6 +104,41 @@ const PostController = {
             res.status(500).json({ error: 'Internal server error' })
         }
     },
+    updatePost: async (req, res) => {
+        const { id } = req.params;
+        const { content } = req.body;
+        const authorId = req.user.userId;
+
+        try {
+            const post = await prisma.post.findUnique({ where: { id } });
+
+            if (!post) {
+                return res.status(404).json({ error: 'Пост не найден' });
+            }
+
+            if (post.authorId.toString() !== authorId.toString()) {
+                return res.status(403).json({ error: 'Нет доступа' });
+            }
+
+            if (!content || content.trim() === '') {
+                return res.status(400).json({ error: 'Поле content обязательно' });
+            }
+
+            const updatedPost = await prisma.post.update({
+                where: { id },
+                data: {
+                    content,
+                    imageUrl: req.file ? `/uploads/${req.file.filename}` : post.imageUrl
+                }
+            });
+
+            res.json(updatedPost);
+        } catch (error) {
+            console.error('Update post error', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
     deletePost: async (req, res) => {
         const { id } = req.params;
 

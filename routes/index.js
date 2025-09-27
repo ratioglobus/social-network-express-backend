@@ -28,6 +28,7 @@ router.post('/posts', authenticateToken, uploads.single('image'), PostController
 router.get('/posts', authenticateToken, PostController.getAllPosts)
 router.get('/posts/:id', authenticateToken, PostController.getPostById)
 router.delete('/posts/:id', authenticateToken, PostController.deletePost)
+router.put('/posts/:id', authenticateToken, uploads.single('image'), PostController.updatePost)
 
 // Роуты комментариев
 router.post('/comments', authenticateToken, CommentController.createComment)
