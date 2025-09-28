@@ -5,7 +5,6 @@ services:
       - '3000:3000'
     depends_on:
       - db
-      - react-app
     environment:
       DATABASE_URL: "mongodb://monty:pass@db:27017/mydatabase?authSource=admin&directConnection=true"
   db:
