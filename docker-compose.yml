@@ -1,4 +1,3 @@
-version: '3'
 services:
   express-app:
     build: .
@@ -16,7 +15,3 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: monty
       MONGO_INITDB_ROOT_PASSWORD: pass
-  react-app:
-    build: ../react-client-js
-    ports: 
-      - '80:80'
